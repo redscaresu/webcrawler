@@ -26,7 +26,7 @@ func RunCli() {
 	if err != nil {
 		log.Fatal()
 	}
-	SortUrls(links, url)
+	uniquePaths(links, url)
 }
 
 func Crawl(website string) ([]byte, error) {
@@ -76,14 +76,28 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	return links, err
 }
 
-func SortUrls(links []string, url *url.URL) {
+func uniquePaths(links []string, url *url.URL) {
 
-	fmt.Println(url)
+	var paths []string
+
 	for _, v := range links {
-		if v != url.String() {
-			fmt.Println(v)
+		u, _ := url.Parse(v)
+		if u.Host == url.Host {
+			paths = append(paths, u.Path)
 		}
 	}
 
-	for url
+	inResult := make(map[string]bool)
+	var uniquePaths []string
+	for _, str := range paths {
+		if _, ok := inResult[str]; !ok {
+			inResult[str] = true
+			if str != "/" {
+				if str != "" {
+					uniquePaths = append(uniquePaths, url.Host+str)
+				}
+			}
+		}
+	}
+	fmt.Println(uniquePaths)
 }
