@@ -94,7 +94,7 @@ func uniquePaths(links []string, url *url.URL) {
 			inResult[str] = true
 			if str != "/" {
 				if str != "" {
-					uniquePaths = append(uniquePaths, url.Host+str)
+					uniquePaths = append(uniquePaths, "https://"+url.Host+str)
 				}
 			}
 		}
