@@ -22,7 +22,11 @@ func RunCli() {
 		log.Fatal(err)
 	}
 
-	findUrls(url, content)
+	links, err := findUrls(url, content)
+	if err != nil {
+		log.Fatal()
+	}
+	SortUrls(links, url)
 }
 
 func Crawl(website string) ([]byte, error) {
@@ -46,12 +50,11 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	var (
 		err       error
 		links     []string = make([]string, 0)
-		matches   [][]string
-		findLinks = regexp.MustCompile("<a.*?href=\"(.*?)\"")
+		findLinks          = regexp.MustCompile("<a.*?href=\"(.*?)\"")
 	)
 
 	// Retrieve all anchor tag URLs from string
-	matches = findLinks.FindAllStringSubmatch(string(content), -1)
+	matches := findLinks.FindAllStringSubmatch(string(content), -1)
 
 	for _, val := range matches {
 		var linkUrl *url.URL
@@ -70,8 +73,17 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 		}
 	}
 
-	for _, v := range links {
-		fmt.Println(v)
-	}
 	return links, err
+}
+
+func SortUrls(links []string, url *url.URL) {
+
+	fmt.Println(url)
+	for _, v := range links {
+		if v != url.String() {
+			fmt.Println(v)
+		}
+	}
+
+	for url
 }
