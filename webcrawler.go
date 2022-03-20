@@ -35,12 +35,12 @@ func ManageCrawlers(link string) {
 		visitedLinks[link] = false
 	}
 
-	for k, v := range visitedLinks {
+	for k, _ := range visitedLinks {
 		if !visitedLinks[k] {
 			links, _, _ := ProcessWebPage(k)
 			for _, link := range links {
 				visitedLinks[link] = true
-				fmt.Printf("crawled page: %v link: %s visited: %v \n", k, link, v)
+				fmt.Printf("crawled page: %v link: %s \n", k, link)
 			}
 		}
 	}
@@ -146,6 +146,7 @@ func uniquePaths(links []string, url *url.URL) ([]string, []string, error) {
 		}
 	}
 
+	//This is slightly broken, I need to follow websites even if it www.
 	for _, v := range doNotFollow {
 		fmt.Printf("do not follow %s\n", v)
 	}
