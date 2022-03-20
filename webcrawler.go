@@ -12,13 +12,26 @@ import (
 
 func RunCli() {
 
-	links, _ := ProcessWebPage(os.Args[1])
-
-	for _, link := range links {
-		fmt.Println(link)
-		ProcessWebPage(link)
+	links, err := ProcessWebPage(os.Args[1])
+	if err != nil {
+		fmt.Println(err)
 	}
 
+	for _, link := range links {
+		ManageCrawlers(link)
+	}
+}
+
+func ManageCrawlers(link string) {
+
+	links, err := ProcessWebPage(link)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for _, link := range links {
+		fmt.Println(ProcessWebPage(link))
+	}
 }
 
 func ProcessWebPage(website string) ([]string, error) {
@@ -117,5 +130,6 @@ func uniquePaths(links []string, url *url.URL) ([]string, error) {
 			}
 		}
 	}
+
 	return uniquePaths, nil
 }
