@@ -12,8 +12,6 @@ import (
 
 func RunCli() {
 
-	// visitedLinks := make(map[string]bool)
-
 	links, _ := ProcessWebPage(os.Args[1])
 
 	for _, link := range links {
@@ -40,7 +38,7 @@ func ProcessWebPage(website string) ([]string, error) {
 	}
 	urls, err := uniquePaths(links, url)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	return urls, err
@@ -98,7 +96,10 @@ func uniquePaths(links []string, url *url.URL) ([]string, error) {
 	var paths []string
 
 	for _, v := range links {
-		u, _ := url.Parse(v)
+		u, err := url.Parse(v)
+		if err != nil {
+			return nil, err
+		}
 		if u.Host == url.Host {
 			paths = append(paths, u.Path)
 		}
