@@ -11,7 +11,19 @@ import (
 )
 
 func RunCli() {
-	website := os.Args[1]
+
+	// visitedLinks := make(map[string]bool)
+
+	links, _ := ProcessWebPage(os.Args[1])
+
+	for _, link := range links {
+		fmt.Println(link)
+		ProcessWebPage(link)
+	}
+
+}
+
+func ProcessWebPage(website string) ([]string, error) {
 
 	url, err := url.Parse(website)
 	if err != nil {
@@ -24,9 +36,14 @@ func RunCli() {
 
 	links, err := findUrls(url, content)
 	if err != nil {
-		log.Fatal()
+		log.Fatal(err)
 	}
-	uniquePaths(links, url)
+	urls, err := uniquePaths(links, url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return urls, err
 }
 
 func Crawl(website string) ([]byte, error) {
@@ -76,7 +93,7 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	return links, err
 }
 
-func uniquePaths(links []string, url *url.URL) {
+func uniquePaths(links []string, url *url.URL) ([]string, error) {
 
 	var paths []string
 
@@ -99,5 +116,5 @@ func uniquePaths(links []string, url *url.URL) {
 			}
 		}
 	}
-	fmt.Println(uniquePaths)
+	return uniquePaths, nil
 }
