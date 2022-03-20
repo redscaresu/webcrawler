@@ -35,15 +35,13 @@ func ManageCrawlers(link string) {
 		visitedLinks[link] = false
 	}
 
-	for k, v := range visitedLinks {
-		if visitedLinks[k] {
-			visitedLinks[k] = true
-			fmt.Println("do not crawl ", k, v)
-		}
+	for k, _ := range visitedLinks {
 		if !visitedLinks[k] {
-			fmt.Printf("crawling %s \n", k)
-			ProcessWebPage(k)
-			visitedLinks[k] = true
+			links, _ := ProcessWebPage(k)
+			for _, link := range links {
+				visitedLinks[link] = true
+				fmt.Printf("k: %v link: %s \n", k, link)
+			}
 		}
 	}
 }
