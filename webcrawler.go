@@ -147,10 +147,9 @@ func uniquePaths(links []string, url *url.URL) ([]string, []string, error) {
 		}
 	}
 
-	//This is slightly broken, I need to follow websites even if it www.
-	// for _, v := range doNotFollow {
-	// 	fmt.Printf("do not follow %s\n", v)
-	// }
+	for _, v := range doNotFollow {
+		fmt.Printf("do not follow %s\n", v)
+	}
 
 	return uniquePaths, doNotFollow, nil
 }
