@@ -23,14 +23,28 @@ func RunCli() {
 }
 
 func ManageCrawlers(link string) {
+	visitedLinks := make(map[string]bool)
 
 	links, err := ProcessWebPage(link)
 	if err != nil {
 		fmt.Println(err)
 	}
+	visitedLinks[os.Args[1]] = true
 
 	for _, link := range links {
-		fmt.Println(ProcessWebPage(link))
+		visitedLinks[link] = false
+	}
+
+	for k, v := range visitedLinks {
+		if visitedLinks[k] {
+			visitedLinks[k] = true
+			fmt.Println("do not crawl ", k, v)
+		}
+		if !visitedLinks[k] {
+			fmt.Printf("crawling %s \n", k)
+			ProcessWebPage(k)
+			visitedLinks[k] = true
+		}
 	}
 }
 
