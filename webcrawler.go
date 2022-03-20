@@ -37,6 +37,7 @@ func ManageCrawlers(link string) {
 
 	for k, _ := range visitedLinks {
 		if !visitedLinks[k] {
+			visitedLinks[link] = true
 			links, _, _ := ProcessWebPage(k)
 			for _, link := range links {
 				visitedLinks[link] = true
