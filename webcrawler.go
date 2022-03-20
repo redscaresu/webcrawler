@@ -12,7 +12,7 @@ import (
 
 func RunCli() {
 
-	links, err := ProcessWebPage(os.Args[1])
+	links, _, err := ProcessWebPage(os.Args[1])
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -25,7 +25,7 @@ func RunCli() {
 func ManageCrawlers(link string) {
 	visitedLinks := make(map[string]bool)
 
-	links, err := ProcessWebPage(link)
+	links, _, err := ProcessWebPage(link)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -37,7 +37,7 @@ func ManageCrawlers(link string) {
 
 	for k, v := range visitedLinks {
 		if !visitedLinks[k] {
-			links, _ := ProcessWebPage(k)
+			links, _, _ := ProcessWebPage(k)
 			for _, link := range links {
 				visitedLinks[link] = true
 				fmt.Printf("crawled page: %v link: %s visited: %v \n", k, link, v)
@@ -46,7 +46,7 @@ func ManageCrawlers(link string) {
 	}
 }
 
-func ProcessWebPage(website string) ([]string, error) {
+func ProcessWebPage(website string) ([]string, []string, error) {
 
 	url, err := url.Parse(website)
 	if err != nil {
@@ -61,12 +61,12 @@ func ProcessWebPage(website string) ([]string, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	urls, err := uniquePaths(links, url)
+	urls, doNotFollow, err := uniquePaths(links, url)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return urls, err
+	return urls, doNotFollow, err
 }
 
 func Crawl(website string) ([]byte, error) {
@@ -116,17 +116,20 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	return links, err
 }
 
-func uniquePaths(links []string, url *url.URL) ([]string, error) {
+func uniquePaths(links []string, url *url.URL) ([]string, []string, error) {
 
 	var paths []string
+	var doNotFollow []string
 
 	for _, v := range links {
 		u, err := url.Parse(v)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if u.Host == url.Host {
 			paths = append(paths, u.Path)
+		} else {
+			doNotFollow = append(doNotFollow, u.String())
 		}
 	}
 
@@ -143,5 +146,9 @@ func uniquePaths(links []string, url *url.URL) ([]string, error) {
 		}
 	}
 
-	return uniquePaths, nil
+	for _, v := range doNotFollow {
+		fmt.Printf("do not follow %s\n", v)
+	}
+
+	return uniquePaths, doNotFollow, nil
 }
