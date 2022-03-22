@@ -7,3 +7,9 @@ to run
 to test
 
 `go test`
+
+#TODO
+
+- refactor nested page logic
+- increase code coverage
+- implement concurrency
