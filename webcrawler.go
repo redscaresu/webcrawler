@@ -29,13 +29,12 @@ func ManageCrawlers(link string) {
 	}
 
 	for _, link := range links {
-		if visitedLinks[link] {
-			time.Sleep(1 * time.Second)
-			fmt.Printf("skipping %s \n", link)
-		} else {
+		if !visitedLinks[link] {
 			time.Sleep(1 * time.Second)
 			fmt.Printf("crawling %s \n", link)
 			ManageCrawlers(link)
+		} else {
+			fmt.Printf("skipping %s \n", link)
 		}
 	}
 }

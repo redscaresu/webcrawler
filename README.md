@@ -13,3 +13,4 @@ to test
 - refactor nested page logic
 - increase code coverage
 - implement concurrency
+- start following non www internal domains
