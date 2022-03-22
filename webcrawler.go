@@ -8,41 +8,34 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"time"
 )
+
+var visitedLinks = make(map[string]bool)
 
 func RunCli() {
 
-	links, _, err := ProcessWebPage(os.Args[1])
-	if err != nil {
-		fmt.Println(err)
-	}
+	ManageCrawlers(os.Args[1])
 
-	for _, link := range links {
-		ManageCrawlers(link)
-	}
 }
 
 func ManageCrawlers(link string) {
-	visitedLinks := make(map[string]bool)
+
+	visitedLinks[link] = true
 
 	links, _, err := ProcessWebPage(link)
 	if err != nil {
 		fmt.Println(err)
 	}
-	visitedLinks[os.Args[1]] = true
 
 	for _, link := range links {
-		visitedLinks[link] = false
-	}
-
-	for k, _ := range visitedLinks {
-		if !visitedLinks[k] {
-			visitedLinks[link] = true
-			links, _, _ := ProcessWebPage(k)
-			for _, link := range links {
-				visitedLinks[link] = true
-				fmt.Printf("crawled page: %v link: %s\n", k, link)
-			}
+		if visitedLinks[link] {
+			time.Sleep(1 * time.Second)
+			fmt.Printf("skipping %s \n", link)
+		} else {
+			time.Sleep(1 * time.Second)
+			fmt.Printf("crawling %s \n", link)
+			ManageCrawlers(link)
 		}
 	}
 }
@@ -147,9 +140,9 @@ func uniquePaths(links []string, url *url.URL) ([]string, []string, error) {
 		}
 	}
 
-	for _, v := range doNotFollow {
-		fmt.Printf("do not follow %s\n", v)
-	}
+	// for _, v := range doNotFollow {
+	// 	fmt.Printf("do not follow %s\n", v)
+	// }
 
 	return uniquePaths, doNotFollow, nil
 }
