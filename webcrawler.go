@@ -131,10 +131,8 @@ func uniquePaths(links []string, url *url.URL) ([]string, []string, error) {
 	for _, str := range paths {
 		if _, ok := inResult[str]; !ok {
 			inResult[str] = true
-			if str != "/" {
-				if str != "" {
-					uniquePaths = append(uniquePaths, "https://"+url.Host+str)
-				}
+			if str != "/" || str != "" {
+				uniquePaths = append(uniquePaths, "https://"+url.Host+str)
 			}
 		}
 	}
