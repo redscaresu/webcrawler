@@ -8,43 +8,45 @@ import (
 	"net/url"
 	"os"
 	"regexp"
-	"time"
 )
 
-var visitedLinks = make(map[string]bool)
+var visited = make(map[string]bool)
 
 func RunCli() {
 
-	ManageCrawlers(os.Args[1])
+	CrawlPage(os.Args[1])
 
 }
 
-func ManageCrawlers(link string) {
+func CrawlPage(link string) {
 
-	visitedLinks[link] = true
+	visited[link] = true
 
-	links, _, err := ProcessWebPage(link)
+	links, err := ProcessWebPage(link)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	for _, link := range links {
-		if !visitedLinks[link] {
-			time.Sleep(1 * time.Second)
+		if !visited[link] {
+			// time.Sleep(1 * time.Second)
 			fmt.Printf("crawling %s \n", link)
-			ManageCrawlers(link)
-		} else {
-			fmt.Printf("skipping %s \n", link)
+			CrawlPage(link)
+			continue
+			// } else {
+			// 	fmt.Printf("skipping %s \n", link)
+			// }
 		}
 	}
 }
 
-func ProcessWebPage(website string) ([]string, []string, error) {
+func ProcessWebPage(website string) ([]string, error) {
 
 	url, err := url.Parse(website)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	content, err := Crawl(website)
 	if err != nil {
 		log.Fatal(err)
@@ -54,12 +56,13 @@ func ProcessWebPage(website string) ([]string, []string, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	urls, doNotFollow, err := uniquePaths(links, url)
+
+	urls, _, err := canonicalise(links, url)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return urls, doNotFollow, err
+	return urls, err
 }
 
 func Crawl(website string) ([]byte, error) {
@@ -109,7 +112,7 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	return links, err
 }
 
-func uniquePaths(links []string, url *url.URL) ([]string, []string, error) {
+func canonicalise(links []string, url *url.URL) ([]string, []string, error) {
 
 	var paths []string
 	var doNotFollow []string
