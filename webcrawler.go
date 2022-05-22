@@ -33,9 +33,6 @@ func CrawlPage(link string) {
 			fmt.Printf("crawling %s \n", link)
 			CrawlPage(link)
 			continue
-			// } else {
-			// 	fmt.Printf("skipping %s \n", link)
-			// }
 		}
 	}
 }
@@ -57,7 +54,7 @@ func ProcessWebPage(website string) ([]string, error) {
 		log.Fatal(err)
 	}
 
-	urls, _, err := canonicalise(links, url)
+	urls, err := canonicalise(links, url)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -112,37 +109,30 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	return links, err
 }
 
-func canonicalise(links []string, url *url.URL) ([]string, []string, error) {
+func canonicalise(links []string, url *url.URL) ([]string, error) {
 
 	var paths []string
-	var doNotFollow []string
+	// var doNotFollow []string
 
 	for _, v := range links {
 		u, err := url.Parse(v)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		if u.Host == url.Host {
 			paths = append(paths, u.Path)
-		} else {
-			doNotFollow = append(doNotFollow, u.String())
+			// } else {
+			// 	doNotFollow = append(doNotFollow, u.String())
+			// }
 		}
 	}
 
-	inResult := make(map[string]bool)
 	var uniquePaths []string
 	for _, str := range paths {
-		if _, ok := inResult[str]; !ok {
-			inResult[str] = true
-			if str != "/" || str != "" {
-				uniquePaths = append(uniquePaths, "https://"+url.Host+str)
-			}
+		if str != "/" || str != "" {
+			uniquePaths = append(uniquePaths, "https://"+url.Host+str)
 		}
 	}
 
-	for _, v := range doNotFollow {
-		fmt.Printf("do not follow %s\n", v)
-	}
-
-	return uniquePaths, doNotFollow, nil
+	return uniquePaths, nil
 }
