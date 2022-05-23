@@ -3,11 +3,12 @@ package webcrawler
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
+	"strings"
+
+	"github.com/antchfx/htmlquery"
 )
 
 var visited = make(map[string]bool)
@@ -18,11 +19,11 @@ func RunCli() {
 
 }
 
-func CrawlPage(link string) {
+func CrawlPage(website string) {
 
-	visited[link] = true
+	visited[website] = true
 
-	links, err := ProcessWebPage(link)
+	links, err := ProcessWebPage(website)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -41,22 +42,22 @@ func ProcessWebPage(website string) ([]string, error) {
 
 	url, err := url.Parse(website)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	content, err := Crawl(website)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	links, err := findUrls(url, content)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	urls, err := canonicalise(links, url)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	return urls, err
@@ -75,37 +76,31 @@ func Crawl(website string) ([]byte, error) {
 		return nil, err
 	}
 
-	return content, nil
+	return content, err
 }
 
 func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 
-	var (
-		err       error
-		links     []string = make([]string, 0)
-		findLinks          = regexp.MustCompile("<a.*?href=\"(.*?)\"")
-	)
+	var links []string
 
-	// Retrieve all anchor tag URLs from string
-	matches := findLinks.FindAllStringSubmatch(string(content), -1)
-
-	for _, val := range matches {
-		var linkUrl *url.URL
-
-		// Parse the anchr tag URL
-		if linkUrl, err = url.Parse(val[1]); err != nil {
-			return links, err
+	doc, err := htmlquery.LoadURL(urlToGet.String())
+	if err != nil {
+		return nil, err
+	}
+	htmlNodes, _ := htmlquery.QueryAll(doc, "//a/@href")
+	for _, n := range htmlNodes {
+		href := htmlquery.SelectAttr(n, "href")
+		u, err := url.Parse(href)
+		if err != nil {
+			return nil, err
 		}
-
-		// If the URL is absolute, add it to the slice
-		// If the URL is relative, build an absolute URL
-		if linkUrl.IsAbs() {
-			links = append(links, linkUrl.String())
-		} else {
-			links = append(links, urlToGet.Scheme+"://"+urlToGet.Host+linkUrl.String())
+		if u.IsAbs() && u.Host == urlToGet.Host {
+			links = append(links, u.String())
+		}
+		if strings.HasPrefix(u.String(), "/") {
+			links = append(links, urlToGet.Scheme+"://"+urlToGet.Host+u.String())
 		}
 	}
-
 	return links, err
 }
 
