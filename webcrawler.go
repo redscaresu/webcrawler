@@ -90,44 +90,31 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	htmlNodes, _ := htmlquery.QueryAll(doc, "//a/@href")
 	for _, n := range htmlNodes {
 		href := htmlquery.SelectAttr(n, "href")
-		u, err := url.Parse(href)
+		url, err := url.Parse(href)
 		if err != nil {
 			return nil, err
 		}
-		if u.IsAbs() && u.Host == urlToGet.Host {
-			links = append(links, u.String())
-		}
-		if strings.HasPrefix(u.String(), "/") {
-			links = append(links, urlToGet.Scheme+"://"+urlToGet.Host+u.String())
-		}
+		links = append(links, url.String())
 	}
 	return links, err
 }
 
 func canonicalise(links []string, url *url.URL) ([]string, error) {
 
-	var paths []string
-	// var doNotFollow []string
+	var matchingLinks []string
 
-	for _, v := range links {
-		u, err := url.Parse(v)
+	for _, l := range links {
+		link, err := url.Parse(l)
 		if err != nil {
 			return nil, err
 		}
-		if u.Host == url.Host {
-			paths = append(paths, u.Path)
-			// } else {
-			// 	doNotFollow = append(doNotFollow, u.String())
-			// }
+		if link.IsAbs() && link.Host == url.Host {
+			matchingLinks = append(matchingLinks, link.String())
+		}
+		if strings.HasPrefix(link.String(), "/") {
+			matchingLinks = append(matchingLinks, link.Scheme+"://"+link.Host+link.String())
 		}
 	}
 
-	var uniquePaths []string
-	for _, str := range paths {
-		if str != "/" || str != "" {
-			uniquePaths = append(uniquePaths, "https://"+url.Host+str)
-		}
-	}
-
-	return uniquePaths, nil
+	return matchingLinks, nil
 }
