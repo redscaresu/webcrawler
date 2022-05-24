@@ -2,7 +2,7 @@
 
 to run
 
-`go run cmd/main.go https://www.monzo.com`
+`go run cmd/main.go https://monzo.com`
 
 to test
 
@@ -10,6 +10,5 @@ to test
 
 #TODO
 
-- refactor nested page logic
 - increase code coverage
 - implement concurrency

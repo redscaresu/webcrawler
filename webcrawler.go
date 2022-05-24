@@ -3,64 +3,67 @@ package webcrawler
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
-	"time"
+	"strings"
+
+	"github.com/antchfx/htmlquery"
 )
 
-var visitedLinks = make(map[string]bool)
+var visited = make(map[string]bool)
 
 func RunCli() {
 
-	ManageCrawlers(os.Args[1])
+	if len(os.Args) < 2 {
+		fmt.Println("please enter website to crawl for example `go run main/cmd/main.go https://monzo.com`")
+		os.Exit(1)
+	}
 
+	CrawlPage(os.Args[1])
 }
 
-func ManageCrawlers(link string) {
+func CrawlPage(website string) {
 
-	visitedLinks[link] = true
+	visited[website] = true
 
-	links, _, err := ProcessWebPage(link)
+	links, err := ProcessWebPage(website)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	for _, link := range links {
-		if visitedLinks[link] {
-			time.Sleep(1 * time.Second)
-			fmt.Printf("skipping %s \n", link)
-		} else {
-			time.Sleep(1 * time.Second)
+		if !visited[link] {
 			fmt.Printf("crawling %s \n", link)
-			ManageCrawlers(link)
+			CrawlPage(link)
+			continue
 		}
 	}
 }
 
-func ProcessWebPage(website string) ([]string, []string, error) {
+func ProcessWebPage(website string) ([]string, error) {
 
 	url, err := url.Parse(website)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
+
 	content, err := Crawl(website)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	links, err := findUrls(url, content)
 	if err != nil {
-		log.Fatal(err)
-	}
-	urls, doNotFollow, err := uniquePaths(links, url)
-	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	return urls, doNotFollow, err
+	urls, err := canonicalise(links, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return urls, err
 }
 
 func Crawl(website string) ([]byte, error) {
@@ -76,73 +79,45 @@ func Crawl(website string) ([]byte, error) {
 		return nil, err
 	}
 
-	return content, nil
+	return content, err
 }
 
 func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 
-	var (
-		err       error
-		links     []string = make([]string, 0)
-		findLinks          = regexp.MustCompile("<a.*?href=\"(.*?)\"")
-	)
+	var links []string
 
-	// Retrieve all anchor tag URLs from string
-	matches := findLinks.FindAllStringSubmatch(string(content), -1)
-
-	for _, val := range matches {
-		var linkUrl *url.URL
-
-		// Parse the anchr tag URL
-		if linkUrl, err = url.Parse(val[1]); err != nil {
-			return links, err
-		}
-
-		// If the URL is absolute, add it to the slice
-		// If the URL is relative, build an absolute URL
-		if linkUrl.IsAbs() {
-			links = append(links, linkUrl.String())
-		} else {
-			links = append(links, urlToGet.Scheme+"://"+urlToGet.Host+linkUrl.String())
-		}
+	doc, err := htmlquery.LoadURL(urlToGet.String())
+	if err != nil {
+		return nil, err
 	}
-
+	htmlNodes, _ := htmlquery.QueryAll(doc, "//a/@href")
+	for _, n := range htmlNodes {
+		href := htmlquery.SelectAttr(n, "href")
+		url, err := url.Parse(href)
+		if err != nil {
+			return nil, err
+		}
+		links = append(links, url.String())
+	}
 	return links, err
 }
 
-func uniquePaths(links []string, url *url.URL) ([]string, []string, error) {
+func canonicalise(links []string, url *url.URL) ([]string, error) {
 
-	var paths []string
-	var doNotFollow []string
+	var matchingLinks []string
 
-	for _, v := range links {
-		u, err := url.Parse(v)
+	for _, l := range links {
+		link, err := url.Parse(l)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		if u.Host == url.Host {
-			paths = append(paths, u.Path)
-		} else {
-			doNotFollow = append(doNotFollow, u.String())
+		if link.IsAbs() && link.Host == url.Host {
+			matchingLinks = append(matchingLinks, link.String())
 		}
-	}
-
-	inResult := make(map[string]bool)
-	var uniquePaths []string
-	for _, str := range paths {
-		if _, ok := inResult[str]; !ok {
-			inResult[str] = true
-			if str != "/" {
-				if str != "" {
-					uniquePaths = append(uniquePaths, "https://"+url.Host+str)
-				}
-			}
+		if strings.HasPrefix(link.String(), "/") {
+			matchingLinks = append(matchingLinks, link.Scheme+"://"+link.Host+link.String())
 		}
 	}
 
-	// for _, v := range doNotFollow {
-	// 	fmt.Printf("do not follow %s\n", v)
-	// }
-
-	return uniquePaths, doNotFollow, nil
+	return matchingLinks, nil
 }
