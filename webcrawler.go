@@ -7,12 +7,9 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/antchfx/htmlquery"
 )
-
-var visited = make(map[string]bool)
 
 func RunCli() {
 
@@ -26,20 +23,33 @@ func RunCli() {
 
 func CrawlPage(website string) {
 
-	var sm sync.Map
-	sm.Store(website, true)
-	// visited[website] = true
+	websites := []string{website}
 
-	links, err := ProcessWebPage(website)
-	if err != nil {
-		fmt.Println(err)
+	worklist := make(chan []string)  // lists of URLs, may have duplicates
+	unseenLinks := make(chan string) // de-duplicated URLs
+
+	go func() { worklist <- websites }()
+
+	// Create 20 crawler goroutines to fetch each unseen link.
+	for i := 0; i < 20; i++ {
+		go func() {
+			for link := range unseenLinks {
+				foundLinks, _ := ProcessWebPage(link)
+				go func() { worklist <- foundLinks }()
+				fmt.Println(link)
+			}
+		}()
 	}
 
-	for _, link := range links {
-		if sm.Load(website); !visited[link] {
-			fmt.Printf("crawling %s \n", link)
-			go CrawlPage(link)
-			continue
+	// The main goroutine de-duplicates worklist items
+	// and sends the unseen ones to the crawlers.
+	seen := make(map[string]bool)
+	for list := range worklist {
+		for _, link := range list {
+			if !seen[link] {
+				seen[link] = true
+				unseenLinks <- link
+			}
 		}
 	}
 }
