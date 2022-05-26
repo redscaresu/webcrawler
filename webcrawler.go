@@ -16,7 +16,7 @@ var visited = make(map[string]bool)
 func RunCli() {
 
 	if len(os.Args) < 2 {
-		fmt.Println("please enter website to crawl for example `go run main/cmd/main.go https://monzo.com`")
+		fmt.Println("please enter website to crawl for example `go run cmd/main.go https://monzo.com`")
 		os.Exit(1)
 	}
 
