@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/antchfx/htmlquery"
 )
@@ -25,7 +26,9 @@ func RunCli() {
 
 func CrawlPage(website string) {
 
-	visited[website] = true
+	var sm sync.Map
+	sm.Store(website, true)
+	// visited[website] = true
 
 	links, err := ProcessWebPage(website)
 	if err != nil {
@@ -33,9 +36,9 @@ func CrawlPage(website string) {
 	}
 
 	for _, link := range links {
-		if !visited[link] {
+		if sm.Load(website); !visited[link] {
 			fmt.Printf("crawling %s \n", link)
-			CrawlPage(link)
+			go CrawlPage(link)
 			continue
 		}
 	}
