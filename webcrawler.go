@@ -74,7 +74,6 @@ func ProcessWebPage(website string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(links)
 
 	urls, err := Canonicalise(links, url)
 	if err != nil {
