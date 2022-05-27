@@ -28,15 +28,19 @@ func CrawlPage(website string) {
 	worklist := make(chan []string)  // lists of URLs, may have duplicates
 	unseenLinks := make(chan string) // de-duplicated URLs
 
-	go func() { worklist <- websites }()
+	go func() {
+		worklist <- websites
+	}()
 
 	// Create 20 crawler goroutines to fetch each unseen link.
 	for i := 0; i < 20; i++ {
 		go func() {
 			for link := range unseenLinks {
 				foundLinks, _ := ProcessWebPage(link)
-				go func() { worklist <- foundLinks }()
-				fmt.Println(link)
+				go func() {
+					worklist <- foundLinks
+				}()
+				fmt.Printf("crawling %s \n", link)
 			}
 		}()
 	}
