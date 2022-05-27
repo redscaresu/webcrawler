@@ -3,6 +3,7 @@ package webcrawler_test
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"testing"
 	"webcrawler"
 
@@ -23,5 +24,25 @@ func TestCrawl(t *testing.T) {
 	if !cmp.Equal(want, got) {
 		t.Error(cmp.Diff(want, got))
 	}
+}
 
+func TestCanonicalise(t *testing.T) {
+
+	url, err := url.Parse("https://monzo.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	links := []string{"/i/business", "/i/current-account/", "https://monzo.com/faq", "https://app.adjust.com/ydi27sn_9mq4ox7?engagement_type=fallback_click&fallback=https://monzo.com/download&redirect_macos=https://monzo.com/download"}
+
+	want, err := webcrawler.Canonicalise(links, url)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got := []string{"https://monzo.com/i/business", "https://monzo.com/i/current-account/", "https://monzo.com/faq"}
+
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
 }
