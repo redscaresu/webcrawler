@@ -74,8 +74,9 @@ func ProcessWebPage(website string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(links)
 
-	urls, err := canonicalise(links, url)
+	urls, err := Canonicalise(links, url)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +120,7 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	return links, err
 }
 
-func canonicalise(links []string, url *url.URL) ([]string, error) {
+func Canonicalise(links []string, url *url.URL) ([]string, error) {
 
 	var matchingLinks []string
 
