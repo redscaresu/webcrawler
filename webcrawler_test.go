@@ -26,6 +26,30 @@ func TestCrawl(t *testing.T) {
 	}
 }
 
+func TestFindUrls(t *testing.T) {
+
+	url, err := url.Parse("https://www.example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content, err := ioutil.ReadFile("testdata/webcrawler.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"https://www.iana.org/domains/example"}
+
+	got, err := webcrawler.FindUrls(url, content)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
+}
+
 func TestCanonicalise(t *testing.T) {
 
 	url, err := url.Parse("https://monzo.com")

@@ -70,7 +70,7 @@ func ProcessWebPage(website string) ([]string, error) {
 		return nil, err
 	}
 
-	links, err := findUrls(url, content)
+	links, err := FindUrls(url, content)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func Crawl(website string) ([]byte, error) {
 	return content, err
 }
 
-func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
+func FindUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 
 	var links []string
 
