@@ -35,6 +35,7 @@ func CrawlPage(website string) {
 		go func() {
 			for link := range unseenLinks {
 				foundLinks, _ := ProcessWebPage(link)
+				//when I try and return the error here it cannot do it.
 				go func() {
 					worklist <- foundLinks
 				}()
