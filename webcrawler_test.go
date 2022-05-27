@@ -1,30 +1,12 @@
 package webcrawler_test
 
 import (
-	"fmt"
-	"io/ioutil"
 	"net/url"
 	"testing"
 	"webcrawler"
 
 	"github.com/google/go-cmp/cmp"
 )
-
-func TestCrawl(t *testing.T) {
-	got, err := webcrawler.Crawl("https://www.example.com/")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	want, err := ioutil.ReadFile("testdata/webcrawler.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !cmp.Equal(want, got) {
-		t.Error(cmp.Diff(want, got))
-	}
-}
 
 func TestFindUrls(t *testing.T) {
 
@@ -33,14 +15,9 @@ func TestFindUrls(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	content, err := ioutil.ReadFile("testdata/webcrawler.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	want := []string{"https://www.iana.org/domains/example"}
 
-	got, err := webcrawler.FindUrls(url, content)
+	got, err := webcrawler.FindUrls(url)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,8 +2,6 @@ package webcrawler
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -65,12 +63,7 @@ func ProcessWebPage(website string) ([]string, error) {
 		return nil, err
 	}
 
-	content, err := Crawl(website)
-	if err != nil {
-		return nil, err
-	}
-
-	links, err := FindUrls(url, content)
+	links, err := FindUrls(url)
 	if err != nil {
 		return nil, err
 	}
@@ -83,23 +76,7 @@ func ProcessWebPage(website string) ([]string, error) {
 	return urls, err
 }
 
-func Crawl(website string) ([]byte, error) {
-
-	resp, err := http.Get(website)
-	if err != nil {
-		return nil, err
-	}
-
-	content, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return content, err
-}
-
-func FindUrls(urlToGet *url.URL, content []byte) ([]string, error) {
+func FindUrls(urlToGet *url.URL) ([]string, error) {
 
 	var links []string
 
