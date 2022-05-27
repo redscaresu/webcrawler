@@ -47,11 +47,11 @@ func CrawlPage(website string) {
 
 	// The main goroutine de-duplicates worklist items
 	// and sends the unseen ones to the crawlers.
-	seen := make(map[string]bool)
+	visited := make(map[string]bool)
 	for list := range worklist {
 		for _, link := range list {
-			if !seen[link] {
-				seen[link] = true
+			if !visited[link] {
+				visited[link] = true
 				unseenLinks <- link
 			}
 		}
