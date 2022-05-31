@@ -1,30 +1,42 @@
 package webcrawler_test
 
 import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 	"webcrawler"
 
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestFindUrls(t *testing.T) {
+func TestResponse(t *testing.T) {
+	t.Parallel()
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		file, err := os.Open("testdata/webcrawler.txt")
+		if err != nil {
+			t.Fatal(err)
+		}
+		io.Copy(w, file)
+	}))
+	defer ts.Close()
 
-	url, err := url.Parse("https://www.example.com")
+	client := ts.Client()
+	res, err := client.Get(ts.URL)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := []string{"https://www.iana.org/domains/example"}
-
-	got, err := webcrawler.FindUrls(url)
+	got, err := webcrawler.FindUrls(res)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !cmp.Equal(want, got) {
-		t.Error(cmp.Diff(want, got))
-	}
+	fmt.Println(got)
+
 }
 
 func TestCanonicalise(t *testing.T) {

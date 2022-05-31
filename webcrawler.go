@@ -2,11 +2,13 @@ package webcrawler
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
 	"github.com/antchfx/htmlquery"
+	"golang.org/x/net/html"
 )
 
 func RunCli() {
@@ -64,7 +66,12 @@ func ProcessWebPage(website string) ([]string, error) {
 		return nil, err
 	}
 
-	links, err := FindUrls(url)
+	content, err := Crawl(website)
+	if err != nil {
+		return nil, err
+	}
+
+	links, err := FindUrls(content)
 	if err != nil {
 		return nil, err
 	}
@@ -77,15 +84,26 @@ func ProcessWebPage(website string) ([]string, error) {
 	return urls, err
 }
 
-func FindUrls(urlToGet *url.URL) ([]string, error) {
+func Crawl(website string) (*http.Response, error) {
 
-	var links []string
-
-	doc, err := htmlquery.LoadURL(urlToGet.String())
+	resp, err := http.Get(website)
 	if err != nil {
 		return nil, err
 	}
-	htmlNodes, _ := htmlquery.QueryAll(doc, "//a/@href")
+
+	return resp, err
+}
+
+func FindUrls(resp *http.Response) ([]string, error) {
+
+	var links []string
+
+	node, err := html.Parse(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	htmlNodes, _ := htmlquery.QueryAll(node, "//a/@href")
 	for _, n := range htmlNodes {
 		href := htmlquery.SelectAttr(n, "href")
 		url, err := url.Parse(href)
