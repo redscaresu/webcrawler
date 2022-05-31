@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/antchfx/htmlquery"
 	"golang.org/x/net/html"
@@ -28,8 +29,12 @@ func CrawlPage(website string) {
 	linkChan := make(chan []string)
 	notVisitedChan := make(chan string)
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	go func() {
 		linkChan <- websites
+		wg.Done()
 	}()
 
 	go func() {
