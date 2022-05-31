@@ -27,7 +27,7 @@ func CrawlPage(website string) {
 	websites := []string{website}
 
 	linkChan := make(chan []string)
-	notVisitedChan := make(chan string)
+	notVisitedChan := make(chan string, 100)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
