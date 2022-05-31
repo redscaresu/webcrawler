@@ -1,7 +1,6 @@
 package webcrawler_test
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -35,8 +34,10 @@ func TestResponse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println(got)
-
+	want := []string{"https://www.happydoggo.org/domains/example"}
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
 }
 
 func TestCanonicalise(t *testing.T) {
