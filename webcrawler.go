@@ -23,13 +23,11 @@ func RunCli() {
 
 func CrawlPage(website string) {
 
-	websites := []string{website}
-
 	linkChan := make(chan []string)
 	notVisitedChan := make(chan string, 100)
 
 	go func() {
-		linkChan <- websites
+		linkChan <- []string{website}
 	}()
 
 	for i := 0; i < 5; i++ {
