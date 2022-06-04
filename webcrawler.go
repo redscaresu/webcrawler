@@ -2,16 +2,14 @@ package webcrawler
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
 	"github.com/antchfx/htmlquery"
+	"golang.org/x/net/html"
 )
-
-var visited = make(map[string]bool)
 
 func RunCli() {
 
@@ -25,18 +23,35 @@ func RunCli() {
 
 func CrawlPage(website string) {
 
-	visited[website] = true
+	linkChan := make(chan []string)
+	notVisitedChan := make(chan string, 100)
 
-	links, err := ProcessWebPage(website)
-	if err != nil {
-		fmt.Println(err)
+	go func() {
+		linkChan <- []string{website}
+	}()
+
+	for i := 0; i < 5; i++ {
+		go func() {
+			for link := range notVisitedChan {
+				links, err := ProcessWebPage(link)
+				if err != nil {
+					fmt.Println(err)
+				}
+				go func() {
+					linkChan <- links
+				}()
+				fmt.Printf("crawling %s \n", link)
+			}
+		}()
 	}
 
-	for _, link := range links {
-		if !visited[link] {
-			fmt.Printf("crawling %s \n", link)
-			CrawlPage(link)
-			continue
+	visited := make(map[string]bool)
+	for links := range linkChan {
+		for _, link := range links {
+			if !visited[link] {
+				visited[link] = true
+				notVisitedChan <- link
+			}
 		}
 	}
 }
@@ -53,12 +68,12 @@ func ProcessWebPage(website string) ([]string, error) {
 		return nil, err
 	}
 
-	links, err := findUrls(url, content)
+	links, err := FindUrls(content)
 	if err != nil {
 		return nil, err
 	}
 
-	urls, err := canonicalise(links, url)
+	urls, err := Canonicalise(links, url)
 	if err != nil {
 		return nil, err
 	}
@@ -66,31 +81,26 @@ func ProcessWebPage(website string) ([]string, error) {
 	return urls, err
 }
 
-func Crawl(website string) ([]byte, error) {
+func Crawl(website string) (*http.Response, error) {
 
 	resp, err := http.Get(website)
 	if err != nil {
 		return nil, err
 	}
 
-	content, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return content, err
+	return resp, err
 }
 
-func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
+func FindUrls(resp *http.Response) ([]string, error) {
 
 	var links []string
 
-	doc, err := htmlquery.LoadURL(urlToGet.String())
+	node, err := html.Parse(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	htmlNodes, _ := htmlquery.QueryAll(doc, "//a/@href")
+
+	htmlNodes, _ := htmlquery.QueryAll(node, "//a/@href")
 	for _, n := range htmlNodes {
 		href := htmlquery.SelectAttr(n, "href")
 		url, err := url.Parse(href)
@@ -102,7 +112,7 @@ func findUrls(urlToGet *url.URL, content []byte) ([]string, error) {
 	return links, err
 }
 
-func canonicalise(links []string, url *url.URL) ([]string, error) {
+func Canonicalise(links []string, url *url.URL) ([]string, error) {
 
 	var matchingLinks []string
 
