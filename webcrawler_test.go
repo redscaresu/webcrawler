@@ -12,7 +12,27 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestResponse(t *testing.T) {
+func TestProcessWebPage(t *testing.T) {
+	websites, err := webcrawler.ProcessWebPage("https://monzo.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := true
+	var got bool
+
+	for _, website := range websites {
+		if website == "https://monzo.com" {
+			got = true
+		}
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Error(cmp.Diff(want, got))
+	}
+}
+
+func TestFindUrls(t *testing.T) {
 	t.Parallel()
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		file, err := os.Open("testdata/webcrawler.txt")
@@ -41,7 +61,7 @@ func TestResponse(t *testing.T) {
 }
 
 func TestCanonicalise(t *testing.T) {
-
+	t.Parallel()
 	url, err := url.Parse("https://monzo.com")
 	if err != nil {
 		t.Fatal(err)
