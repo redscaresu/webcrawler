@@ -20,13 +20,13 @@ I dont like how concurrency is configured here, at the moment concurrency is har
 
 A more elegant solution would be to have something like
 
-`	for _, link := range links {
+```	for _, link := range links {
 		site, ok := sm.Load(link)
 		if !ok {
 			fmt.Printf("crawling %s \n", site)
 			go CrawlPage(site.(string))
 		}
-`
+```
 
 Please note this is not a working example we would need to think about how we deal with the global shared data (in this case I think a sync.map might be a good option).  This approach would allow the number of workers to dynamically grow as the number of links grow.
 
