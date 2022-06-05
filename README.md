@@ -1,10 +1,10 @@
 # webcrawler
 
-to run
+### To Run
 
 `go run cmd/main.go https://monzo.com`
 
-to test
+### To Test
 
 `go test`
 
