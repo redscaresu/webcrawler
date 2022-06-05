@@ -14,7 +14,8 @@ I would like to write a handful of small HTML pages that link to each other, and
 
 I dont like how concurrency is configured here, at the moment concurrency is hardcoded to 5
 
-```	for i := 0; i < 5; i++ {
+```	
+for i := 0; i < 5; i++ {
 		go func() {
 ```
 
