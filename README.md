@@ -19,7 +19,7 @@ for i := 0; i < 5; i++ {
 		go func() {
 ```
 
-	A more elegant solution would be to have something like
+  A more elegant solution would be to have something like
 
 ```	
 for _, link := range links {
@@ -30,7 +30,7 @@ for _, link := range links {
 		}
 ```
 
-	Please note this is not a working example we would need to think about how we deal with the global shared data (in this case I think a sync.map might be a good option).  This approach would allow the number of workers to dynamically grow as the number of links grow.
+  Please note this is not a working example we would need to think about how we deal with the global shared data (in this case I think a sync.map might be a good option).  This approach would allow the number of workers to dynamically grow as the number of links grow.
 
 I would like to check the HTTP response status and do something reasonable is a non 200 is returned, also I would like to optimise the crawl further by checking for media type (no point trying to parse MP3s for links, for example).
 
