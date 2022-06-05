@@ -38,5 +38,5 @@ Please note this is not a working example we would need to think about how we de
 
 ### Feature Improvements
 
-I would like to check the HTTP response status and do something reasonable is a non 200 is returned, also I would like to optimise the crawl further by checking for media type (no point trying to parse MP3s for links, for example).
+I would like to check the HTTP response status and do something reasonable if a non 200 is returned, also I would like to optimise the crawl further by checking for media type (no point trying to parse MP3s for links, for example).
 
